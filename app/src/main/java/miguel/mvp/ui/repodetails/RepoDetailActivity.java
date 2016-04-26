@@ -5,13 +5,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import java.io.IOException;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import miguel.mvp.R;
 import miguel.mvp.model.Repo;
-import miguel.mvp.ui.BaseMVPActivity;
+import miguel.mvp.network.ServerError;
+import miguel.mvp.ui.MVPBase.BaseMVPActivity;
+import miguel.mvp.ui.repodetails.RepoDetailContract.Presenter;
+import miguel.mvp.ui.repodetails.RepoDetailContract.View;
 
-public class RepoDetailActivity extends BaseMVPActivity<RepoDetailsPresenter> implements RepoDetailsView {
+public class RepoDetailActivity extends BaseMVPActivity<Presenter> implements View {
 
 	private String repoUrl;
 
@@ -34,8 +39,8 @@ public class RepoDetailActivity extends BaseMVPActivity<RepoDetailsPresenter> im
 	}
 
 	@Override
-	protected RepoDetailsPresenter instantiatePresenter() {
-		return new RepoDetailsPresenterImpl(repoUrl);
+	protected Presenter instantiatePresenter() {
+		return new RepoDetailsPresenter(repoUrl);
 	}
 
 	@Override
@@ -44,8 +49,12 @@ public class RepoDetailActivity extends BaseMVPActivity<RepoDetailsPresenter> im
 	}
 
 	@Override
-	public void displayError(String message) {
-		tvRepoString.setText(message);
+	public void displayError(Throwable error) {
+		if (error instanceof ServerError) {
+			tvRepoString.setText(error.getMessage());
+		} else if (error instanceof IOException) {
+			tvRepoString.setText("network error");
+		}
 	}
 
 	@Override

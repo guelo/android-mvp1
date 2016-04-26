@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,9 +24,10 @@ import butterknife.ButterKnife;
 import miguel.mvp.R;
 import miguel.mvp.model.SearchResult;
 import miguel.mvp.model.SearchResult.SearchItem;
-import miguel.mvp.ui.BaseMVPActivity;
+import miguel.mvp.network.ServerError;
+import miguel.mvp.ui.MVPBase.BaseMVPActivity;
 
-public class SearchActivity extends BaseMVPActivity<SearchPresenter> implements SearchView {
+public class SearchActivity extends BaseMVPActivity<SearchContract.SearchPresenter> implements SearchContract.SearchView {
 
 	@Bind(R.id.searchField) EditText searchbox;
 	@Bind(R.id.recycler) RecyclerView recycler;
@@ -77,8 +79,12 @@ public class SearchActivity extends BaseMVPActivity<SearchPresenter> implements 
 	}
 
 	@Override
-	public void displayError(String message) {
-		tvErrorMessage.setText(message);
+	public void displayError(Throwable error) {
+		if (error instanceof ServerError) {
+			tvErrorMessage.setText(error.getMessage());
+		} else if (error instanceof IOException) {
+			tvErrorMessage.setText("network error");
+		}
 
 		tvErrorMessage.setVisibility(View.VISIBLE);
 		recycler.setVisibility(View.GONE);
@@ -103,8 +109,8 @@ public class SearchActivity extends BaseMVPActivity<SearchPresenter> implements 
 
 
 	@Override
-	protected SearchPresenter instantiatePresenter() {
-		return new SearchPresenterImpl();
+	protected SearchContract.SearchPresenter instantiatePresenter() {
+		return new SearchPresenter();
 	}
 
 	public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {

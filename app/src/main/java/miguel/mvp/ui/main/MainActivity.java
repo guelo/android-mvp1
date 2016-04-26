@@ -9,32 +9,35 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import miguel.mvp.Injector;
 import miguel.mvp.R;
 import miguel.mvp.model.Repo;
-import miguel.mvp.ui.BaseMVPActivity;
+import miguel.mvp.network.ServerError;
+import miguel.mvp.ui.MVPBase.BaseMVPActivity;
+import miguel.mvp.ui.main.MainContract.Presenter;
+import miguel.mvp.ui.main.MainContract.View;
 import miguel.mvp.ui.repodetails.RepoDetailActivity;
 import miguel.mvp.ui.search.SearchActivity;
 
-public class MainActivity extends BaseMVPActivity<MainPresenter> implements MainView {
+public class MainActivity extends BaseMVPActivity<Presenter> implements View {
 
 	@Bind(R.id.recycler) RecyclerView recyclerView;
 	@Bind(R.id.errormessage) TextView tvErrormessage;
 	@Bind(R.id.progressbar) ProgressBar progressBar;
 	@Bind(R.id.my_toolbar) Toolbar toolbar;
 
-	private MyAdapter adapter;
+	private Adapter adapter;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,7 +49,7 @@ public class MainActivity extends BaseMVPActivity<MainPresenter> implements Main
 
 		LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(mLayoutManager);
-		adapter = new MyAdapter();
+		adapter = new Adapter();
 		recyclerView.setAdapter(adapter);
 	}
 
@@ -64,18 +67,18 @@ public class MainActivity extends BaseMVPActivity<MainPresenter> implements Main
 			return true;
 		}
 		if (id == R.id.action_refresh) {
-			presenter.reload();
+			presenter.load();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
-	protected MainPresenter instantiatePresenter() {
-		return new MainPresenterImpl();
+	protected Presenter instantiatePresenter() {
+		return new MainPresenter(Injector.provideGithubService());
 	}
 
-	public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+	public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
 		private List<Repo> repos = Collections.emptyList();
 
@@ -85,14 +88,14 @@ public class MainActivity extends BaseMVPActivity<MainPresenter> implements Main
 		}
 
 		@Override
-		public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-			View v = LayoutInflater.from(parent.getContext())
+		public Adapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+			android.view.View v = LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.repo_row, parent, false);
 			return new ViewHolder(v);
 		}
 
 		@Override
-		public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
+		public void onBindViewHolder(Adapter.ViewHolder holder, int position) {
 			Repo repo = repos.get(position);
 			holder.tvName.setText(repo.getName());
 
@@ -106,14 +109,14 @@ public class MainActivity extends BaseMVPActivity<MainPresenter> implements Main
 		public class ViewHolder extends RecyclerView.ViewHolder {
 			public TextView tvName;
 
-			public ViewHolder(View itemView) {
+			public ViewHolder(android.view.View itemView) {
 				super(itemView);
 
 				tvName = (TextView) itemView.findViewById(R.id.tvName);
 
 				itemView.setOnClickListener(new OnClickListener() {
 					@Override
-					public void onClick(View view) {
+					public void onClick(android.view.View view) {
 						int itemPosition = recyclerView.getChildPosition(view);
 						Repo repo = repos.get(itemPosition);
 						startActivity(RepoDetailActivity.startIntent(repo, MainActivity.this));
@@ -124,31 +127,30 @@ public class MainActivity extends BaseMVPActivity<MainPresenter> implements Main
 	}
 
 	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-	}
-
-	@Override
 	public void displayLoading() {
-		recyclerView.setVisibility(View.GONE);
-		tvErrormessage.setVisibility(View.GONE);
-		progressBar.setVisibility(View.VISIBLE);
+		recyclerView.setVisibility(android.view.View.GONE);
+		tvErrormessage.setVisibility(android.view.View.GONE);
+		progressBar.setVisibility(android.view.View.VISIBLE);
 	}
 
 	@Override
-	public void displayError(String error) {
-		recyclerView.setVisibility(View.GONE);
-		tvErrormessage.setVisibility(View.VISIBLE);
-		progressBar.setVisibility(View.GONE);
+	public void displayError(Throwable error) {
+		recyclerView.setVisibility(android.view.View.GONE);
+		tvErrormessage.setVisibility(android.view.View.VISIBLE);
+		progressBar.setVisibility(android.view.View.GONE);
 
-		tvErrormessage.setText(error);
+		if (error instanceof ServerError) {
+			tvErrormessage.setText(error.getMessage());
+		} else if (error instanceof IOException) {
+			tvErrormessage.setText("network error");
+		}
 	}
 
 	@Override
 	public void displayContent(List<Repo> data) {
-		recyclerView.setVisibility(View.VISIBLE);
-		tvErrormessage.setVisibility(View.GONE);
-		progressBar.setVisibility(View.GONE);
+		recyclerView.setVisibility(android.view.View.VISIBLE);
+		tvErrormessage.setVisibility(android.view.View.GONE);
+		progressBar.setVisibility(android.view.View.GONE);
 
 		adapter.setData(data);
 

@@ -9,6 +9,9 @@ import java.util.List;
 import miguel.mvp.model.Repo;
 import miguel.mvp.model.SearchResult;
 import miguel.mvp.network.GitHubService;
+import miguel.mvp.network.ServerError;
+import miguel.mvp.ui.main.MainContract.View;
+import miguel.mvp.ui.main.MockGithubService.EnqueRunnable;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -18,12 +21,12 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
-public class MainPresenterImplTest {
+public class MainPresenterTest {
 
 	@org.junit.Test
 	public void testReload() throws Exception {
 		final List<Repo> repo = new ArrayList<>();
-		MockService service = new MockService();
+		MockGithubService service = new MockGithubService();
 		service.enqueRunnable = new EnqueRunnable() {
 			@Override
 			public void run(Callback callback, Call call) {
@@ -31,18 +34,18 @@ public class MainPresenterImplTest {
 			}
 		};
 
-		MainPresenterImpl presenter = new MainPresenterImpl(service);
+		MainPresenter presenter = new MainPresenter(service);
 
 		MockView view = new MockView();
 		presenter.viewAttached(view);
-		presenter.reload();
+		presenter.load();
 		Assert.assertEquals(view.data, repo);
 	}
 
 	@org.junit.Test
 	public void testReloadNetworkFailure() throws Exception {
 		final List<Repo> repo = new ArrayList<>();
-		MockService service = new MockService();
+		MockGithubService service = new MockGithubService();
 
 		service.enqueRunnable = new EnqueRunnable() {
 			@Override
@@ -50,41 +53,41 @@ public class MainPresenterImplTest {
 				callback.onFailure(call, new IOException());
 			}
 		};
-		MainPresenterImpl presenter = new MainPresenterImpl(service);
+		MainPresenter presenter = new MainPresenter(service);
 		MockView view = new MockView();
 		presenter.viewAttached(view);
-		presenter.reload();
-		Assert.assertEquals("network Error", view.error);
+		presenter.load();
+		Assert.assertTrue(view.error instanceof IOException);
 	}
 
 	@org.junit.Test
 	public void testReloadServerFailure() throws Exception {
 		final List<Repo> repo = new ArrayList<>();
-		MockService service = new MockService();
+		MockGithubService service = new MockGithubService();
 		service.enqueRunnable = new EnqueRunnable() { @Override public void run(Callback callback, Call call) {
 				callback.onResponse(call, Response.<List<Repo>>error(500, ResponseBody.create(null, "server errr")));
 			} };
 
-		MainPresenterImpl presenter = new MainPresenterImpl(service);
+		MainPresenter presenter = new MainPresenter(service);
 		MockView view = new MockView();
 		presenter.viewAttached(view);
 
-		presenter.reload();
-		Assert.assertEquals("HTTP Status: null\nserver errr", view.error);
+		presenter.load();
+		Assert.assertTrue(view.error instanceof ServerError);
 	}
 
 	@org.junit.Test
 	public void testViewAttached() throws Exception {
 		// simulate network data already loaded
-		MockService service = new MockService();
+		MockGithubService service = new MockGithubService();
 		service.enqueRunnable = new EnqueRunnable() {
 			@Override
 			public void run(Callback callback, Call call) {
 				callback.onResponse(call, Response.success(new ArrayList<>()));
 			}
 		};
-		MainPresenterImpl presenter = new MainPresenterImpl(service);
-		presenter.reload();
+		MainPresenter presenter = new MainPresenter(service);
+		presenter.load();
 
 		MockView mockView = new MockView();
 		presenter.viewAttached(mockView);
@@ -100,7 +103,7 @@ public class MainPresenterImplTest {
 				//do nothing simulating waiting on the network
 			}
 		};
-		presenter.reload();
+		presenter.load();
 		mockView = new MockView();
 		presenter.viewAttached(mockView);
 		Assert.assertNull(mockView.error);
@@ -114,7 +117,7 @@ public class MainPresenterImplTest {
 				callback.onFailure(call, new IOException());
 			}
 		};
-		presenter.reload();
+		presenter.load();
 		mockView = new MockView();
 		presenter.viewAttached(mockView);
 		Assert.assertNotNull(mockView.error);
@@ -123,9 +126,9 @@ public class MainPresenterImplTest {
 
 	}
 
-	class MockView implements MainView {
+	class MockView implements View {
 		List<Repo> data;
-		String error;
+		Throwable error;
 		boolean loading;
 
 		@Override
@@ -134,8 +137,8 @@ public class MainPresenterImplTest {
 		}
 
 		@Override
-		public void displayError(String message) {
-			this.error = message;
+		public void displayError(Throwable error) {
+			this.error = error;
 		}
 
 		@Override
@@ -143,72 +146,6 @@ public class MainPresenterImplTest {
 			this.data = data;
 		}
 	}
-	public interface EnqueRunnable {
 
-		void run(Callback callback, Call call);
-	}
-
-	class MockService implements GitHubService {
-
-		EnqueRunnable enqueRunnable;
-
-		@Override
-		public Call<List<Repo>> listRepos(@Path("user") String user) {
-			return new MockCall<List<Repo>>() {
-				@Override
-				public void enqueue(Callback<List<Repo>> callback) {
-					enqueRunnable.run(callback, this);
-				}
-			};
-		}
-
-		@Override
-		public Call<SearchResult> searchCode(@Query("q") String query) {
-			return new MockCall<SearchResult>() {
-				@Override
-				public void enqueue(Callback<SearchResult> callback) {
-					enqueRunnable.run(callback, this);
-				}
-			};
-		}
-
-		@Override
-		public Call<Repo> getRepo( @Url String url) {
-			return new MockCall<Repo>() {
-				@Override
-				public void enqueue(Callback<Repo> callback) {
-					enqueRunnable.run(callback, this);
-				}
-			};
-		}
-	}
-	static class MockCall<T> implements Call<T> {
-		@Override
-		public Response<T> execute() throws IOException { return null; }
-
-		@Override
-		public void enqueue(Callback<T> callback) {
-		}
-
-		@Override public boolean isExecuted() { return false; }
-
-		@Override
-		public void cancel() { }
-
-		@Override
-		public boolean isCanceled() {
-			return false;
-		}
-
-		@Override
-		public Call<T> clone() {
-			return null;
-		}
-
-		@Override
-		public Request request() {
-			return null;
-		}
-	};
 
 }

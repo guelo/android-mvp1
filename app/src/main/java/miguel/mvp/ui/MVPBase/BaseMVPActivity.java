@@ -1,8 +1,8 @@
-package miguel.mvp.ui;
+package miguel.mvp.ui.MVPBase;
 
 import android.support.v7.app.AppCompatActivity;
 
-abstract public class BaseMVPActivity<P extends Presenter> extends AppCompatActivity implements PresenterView {
+abstract public class BaseMVPActivity<P extends Presenter> extends AppCompatActivity {
 
 	protected P presenter;
 
@@ -19,6 +19,13 @@ abstract public class BaseMVPActivity<P extends Presenter> extends AppCompatActi
 		presenter.viewAttached(this);
 
 	}
+
+	@Override public void onDestroy() {
+		super.onDestroy();
+
+		presenter = null;
+	}
+
 
 	@Override
 	public Object onRetainCustomNonConfigurationInstance() {
