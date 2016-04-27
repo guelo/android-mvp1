@@ -67,10 +67,14 @@ public class MainActivity extends BaseMVPActivity<Presenter> implements View {
 			return true;
 		}
 		if (id == R.id.action_refresh) {
-			presenter.load();
-			return true;
+			return clickRefresh();
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	boolean clickRefresh() {
+		presenter.loadRepos();
+		return true;
 	}
 
 	@Override

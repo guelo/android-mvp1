@@ -34,4 +34,7 @@ abstract public class BaseMVPActivity<P extends Presenter> extends AppCompatActi
 
 	protected abstract P instantiatePresenter();
 
+	public void setPresenter(P presenter) {
+		this.presenter = presenter;
+	}
 }

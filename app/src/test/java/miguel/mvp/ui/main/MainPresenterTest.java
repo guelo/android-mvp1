@@ -7,19 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import miguel.mvp.model.Repo;
-import miguel.mvp.model.SearchResult;
-import miguel.mvp.network.GitHubService;
 import miguel.mvp.network.ServerError;
 import miguel.mvp.ui.main.MainContract.View;
 import miguel.mvp.ui.main.MockGithubService.EnqueRunnable;
-import okhttp3.Request;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
-import retrofit2.http.Url;
 
 public class MainPresenterTest {
 
@@ -38,7 +32,7 @@ public class MainPresenterTest {
 
 		MockView view = new MockView();
 		presenter.viewAttached(view);
-		presenter.load();
+		presenter.loadRepos();
 		Assert.assertEquals(view.data, repo);
 	}
 
@@ -56,7 +50,7 @@ public class MainPresenterTest {
 		MainPresenter presenter = new MainPresenter(service);
 		MockView view = new MockView();
 		presenter.viewAttached(view);
-		presenter.load();
+		presenter.loadRepos();
 		Assert.assertTrue(view.error instanceof IOException);
 	}
 
@@ -72,7 +66,7 @@ public class MainPresenterTest {
 		MockView view = new MockView();
 		presenter.viewAttached(view);
 
-		presenter.load();
+		presenter.loadRepos();
 		Assert.assertTrue(view.error instanceof ServerError);
 	}
 
@@ -87,7 +81,7 @@ public class MainPresenterTest {
 			}
 		};
 		MainPresenter presenter = new MainPresenter(service);
-		presenter.load();
+		presenter.loadRepos();
 
 		MockView mockView = new MockView();
 		presenter.viewAttached(mockView);
@@ -103,7 +97,7 @@ public class MainPresenterTest {
 				//do nothing simulating waiting on the network
 			}
 		};
-		presenter.load();
+		presenter.loadRepos();
 		mockView = new MockView();
 		presenter.viewAttached(mockView);
 		Assert.assertNull(mockView.error);
@@ -117,7 +111,7 @@ public class MainPresenterTest {
 				callback.onFailure(call, new IOException());
 			}
 		};
-		presenter.load();
+		presenter.loadRepos();
 		mockView = new MockView();
 		presenter.viewAttached(mockView);
 		Assert.assertNotNull(mockView.error);

@@ -89,6 +89,8 @@ public class SearchPresenter implements SearchContract.SearchPresenter {
 			getView().displayLoading();
 		}
 
+		errorMessage = null;
+
 	}
 
 	//TODO remove

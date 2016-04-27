@@ -1,17 +1,12 @@
 package miguel.mvp.ui.main;
 
-import android.support.annotation.Nullable;
-
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 import miguel.mvp.model.Repo;
 import miguel.mvp.network.GitHubService;
-import miguel.mvp.network.NetworkClient;
 import miguel.mvp.network.ServerError;
 import miguel.mvp.ui.MVPBase.BasePresenter;
-import miguel.mvp.ui.main.MainContract.Presenter;
 import miguel.mvp.ui.main.MainContract.View;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -34,7 +29,7 @@ public class MainPresenter extends BasePresenter<MainContract.View> implements M
 	}
 
 	@Override
-	public void load() {
+	public void loadRepos() {
 		showLoading();
 
 		Call<List<Repo>> reposCall = github.listRepos("guelo");
@@ -89,7 +84,7 @@ public class MainPresenter extends BasePresenter<MainContract.View> implements M
 		super.viewAttached(mainView);
 
 		if (viewState==null) {
-			load();
+			loadRepos();
 		} else {
 
 			switch (viewState) {
