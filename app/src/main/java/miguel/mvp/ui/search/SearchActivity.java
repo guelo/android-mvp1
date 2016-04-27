@@ -21,6 +21,7 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import miguel.mvp.App;
 import miguel.mvp.R;
 import miguel.mvp.model.SearchResult;
 import miguel.mvp.model.SearchResult.SearchItem;
@@ -107,10 +108,9 @@ public class SearchActivity extends BaseMVPActivity<SearchContract.SearchPresent
 		return true;
 	}
 
-
 	@Override
 	protected SearchContract.SearchPresenter instantiatePresenter() {
-		return new SearchPresenter();
+		return ((App)getApplication()).component().searchPresenter();
 	}
 
 	public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {

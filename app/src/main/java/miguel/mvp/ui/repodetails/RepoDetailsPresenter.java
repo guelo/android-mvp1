@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
+import javax.inject.Inject;
+
 import miguel.mvp.model.Repo;
 import miguel.mvp.network.GitHubService;
 import miguel.mvp.network.NetworkClient;
@@ -18,11 +20,15 @@ import retrofit2.Response;
 
 public class RepoDetailsPresenter extends BasePresenter<View> implements Presenter {
 
+	@Inject
+	GitHubService github;
+
 	private final String repoUrl;
 
 	public RepoDetailsPresenter(String repoUrl) {
 		this.repoUrl = repoUrl;
 	}
+
 
 	@Override
 	public void viewAttached(View view) {
@@ -34,7 +40,7 @@ public class RepoDetailsPresenter extends BasePresenter<View> implements Present
 	private void load() {
 		showLoading();
 
-		Call<Repo> call = github().getRepo(repoUrl);
+		Call<Repo> call = github.getRepo(repoUrl);
 		call.enqueue(new Callback<Repo>() {
 			@Override
 			public void onResponse(Call<Repo> call, Response<Repo> response) {
@@ -71,13 +77,6 @@ public class RepoDetailsPresenter extends BasePresenter<View> implements Present
 		if (getView() != null) {
 			getView().displayError(error);
 		}
-	}
-
-	//TODO remove
-	private GitHubService github() {
-
-		return NetworkClient.getInstance().getRetrofit().create(GitHubService.class);
-
 	}
 
 }

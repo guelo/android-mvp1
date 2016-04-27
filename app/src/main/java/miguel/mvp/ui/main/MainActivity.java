@@ -20,10 +20,10 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import miguel.mvp.Injector;
 import miguel.mvp.R;
 import miguel.mvp.model.Repo;
 import miguel.mvp.network.ServerError;
+import miguel.mvp.App;
 import miguel.mvp.ui.MVPBase.BaseMVPActivity;
 import miguel.mvp.ui.main.MainContract.Presenter;
 import miguel.mvp.ui.main.MainContract.View;
@@ -75,7 +75,7 @@ public class MainActivity extends BaseMVPActivity<Presenter> implements View {
 
 	@Override
 	protected Presenter instantiatePresenter() {
-		return new MainPresenter(Injector.provideGithubService());
+		return ((App)getApplication()).component().mainPresenter();
 	}
 
 	public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {

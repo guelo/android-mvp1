@@ -19,8 +19,8 @@ public class SearchPresenter implements SearchContract.SearchPresenter {
 	private SearchResult results;
 	private Throwable errorMessage;
 
-	public SearchPresenter() {
-		this.github = github();
+	public SearchPresenter(GitHubService gitHubService) {
+		this.github = gitHubService;
 	}
 
 	@Nullable
@@ -88,13 +88,6 @@ public class SearchPresenter implements SearchContract.SearchPresenter {
 		if (isViewAttached()) {
 			getView().displayLoading();
 		}
-
-	}
-
-	//TODO remove
-	private GitHubService github() {
-
-		return NetworkClient.getInstance().getRetrofit().create(GitHubService.class);
 
 	}
 

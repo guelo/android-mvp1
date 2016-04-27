@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import miguel.mvp.App;
 import miguel.mvp.R;
 import miguel.mvp.model.Repo;
 import miguel.mvp.network.ServerError;
@@ -40,7 +41,9 @@ public class RepoDetailActivity extends BaseMVPActivity<Presenter> implements Vi
 
 	@Override
 	protected Presenter instantiatePresenter() {
-		return new RepoDetailsPresenter(repoUrl);
+		RepoDetailsPresenter presenter = new RepoDetailsPresenter(repoUrl);
+		((App)getApplication()).component().inject(presenter);
+		return presenter;
 	}
 
 	@Override

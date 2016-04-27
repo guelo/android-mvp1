@@ -1,10 +1,9 @@
 package miguel.mvp.ui.MVPBase;
 
-import android.support.v7.app.AppCompatActivity;
-
-abstract public class BaseMVPActivity<P extends Presenter> extends AppCompatActivity {
+abstract public class BaseMVPActivity<P extends Presenter> extends BaseDaggerActivity {
 
 	protected P presenter;
+
 
 	@Override
 	protected void onStart() {
